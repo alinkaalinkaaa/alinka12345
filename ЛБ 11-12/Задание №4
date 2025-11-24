@@ -1,0 +1,15 @@
+def reverse_string(s):
+    """
+    Переворачивает строку рекурсивно
+    """
+    if len(s) <= 1:
+        return s
+    else:
+        return reverse_string(s[1:]) + s[0]
+
+# Пример использования
+print("Вариант 4 - Переворот строки:")
+print(f"'hello' -> '{reverse_string('hello')}'")
+print(f"'python' -> '{reverse_string('python')}'")
+print(f"'a' -> '{reverse_string('a')}'")
+print()

@@ -1,0 +1,23 @@
+def combinations(n, k):
+    """
+    Генерирует все сочетания размера k из n элементов (0..n-1)
+    """
+    def backtrack(start, current):
+        if len(current) == k:
+            result.append(current[:])
+            return
+        
+        for i in range(start, n):
+            current.append(i)
+            backtrack(i + 1, current)
+            current.pop()
+    
+    result = []
+    backtrack(0, [])
+    return result
+
+# Пример использования
+print("Вариант 12 - Сочетания размера 2 из 4 элементов:")
+combos = combinations(4, 2)
+print(combos)
+print()

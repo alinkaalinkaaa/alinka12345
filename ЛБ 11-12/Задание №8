@@ -1,0 +1,15 @@
+def array_sum(arr):
+    """
+    Вычисляет сумму элементов массива рекурсивно
+    """
+    if len(arr) == 0:
+        return 0
+    else:
+        return arr[0] + array_sum(arr[1:])
+
+# Пример использования
+print("Вариант 8 - Сумма элементов массива:")
+print(f"[1, 2, 3, 4, 5] -> {array_sum([1, 2, 3, 4, 5])}")
+print(f"[10, -2, 7] -> {array_sum([10, -2, 7])}")
+print(f"[] -> {array_sum([])}")
+print()

@@ -1,0 +1,41 @@
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def preorder_traversal(root):
+    """Прямой обход (корень -> левое -> правое)"""
+    if root is None:
+        return []
+    return [root.val] + preorder_traversal(root.left) + preorder_traversal(root.right)
+
+def inorder_traversal(root):
+    """Центральный обход (левое -> корень -> правое)"""
+    if root is None:
+        return []
+    return inorder_traversal(root.left) + [root.val] + inorder_traversal(root.right)
+
+def postorder_traversal(root):
+    """Обратный обход (левое -> правое -> корень)"""
+    if root is None:
+        return []
+    return postorder_traversal(root.left) + postorder_traversal(root.right) + [root.val]
+
+# Создаем тестовое дерево
+#       1
+#      / \
+#     2   3
+#    / \
+#   4   5
+root = TreeNode(1)
+root.left = TreeNode(2)
+root.right = TreeNode(3)
+root.left.left = TreeNode(4)
+root.left.right = TreeNode(5)
+
+print("Вариант 16 - Обходы бинарного дерева:")
+print(f"Прямой обход: {preorder_traversal(root)}")
+print(f"Центральный обход: {inorder_traversal(root)}")
+print(f"Обратный обход: {postorder_traversal(root)}")
+print()

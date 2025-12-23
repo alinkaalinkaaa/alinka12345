@@ -1,0 +1,50 @@
+import numpy as np
+import random
+
+def k_means_clustering(data, k, max_iters=100):
+    # 1. Инициализация центроидов случайными точками из данных
+    centroids = random.sample(list(data), k)
+    
+    for iteration in range(max_iters):
+        # 2. Присвоение точек кластерам
+        clusters = {i: [] for i in range(k)}
+        for point in data:
+            distances = [np.linalg.norm(point - centroid) for centroid in centroids]
+            cluster_idx = np.argmin(distances)
+            clusters[cluster_idx].append(point)
+        
+        # 3. Пересчёт центроидов
+        new_centroids = []
+        for i in range(k):
+            if clusters[i]:
+                new_centroid = np.mean(clusters[i], axis=0)
+            else:
+                new_centroid = centroids[i]  # если кластер пуст
+            new_centroids.append(new_centroid)
+        
+        # 4. Проверка сходимости
+        if np.allclose(centroids, new_centroids, atol=1e-4):
+            break
+        
+        centroids = new_centroids
+    
+    return centroids, clusters
+
+# Пример использования
+if __name__ == "__main__":
+    # Генерация случайных данных
+    np.random.seed(42)
+    data = np.random.randn(100, 2) * 2
+    data[:50] += [5, 5]
+    data[50:] += [-5, -5]
+    
+    k = 2
+    centroids, clusters = k_means_clustering(data, k)
+    
+    print("Центроиды:")
+    for i, c in enumerate(centroids):
+        print(f"Кластер {i}: {c}")
+    
+    print("\nКоличество точек в кластерах:")
+    for i in range(k):
+        print(f"Кластер {i}: {len(clusters[i])} точек")

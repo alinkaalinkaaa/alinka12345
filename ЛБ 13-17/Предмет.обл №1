@@ -1,0 +1,49 @@
+from collections import deque
+
+def epsilon_closure(states, transitions):
+    closure = set(states)
+    stack = list(states)
+    while stack:
+        state = stack.pop()
+        if (state, 'ε') in transitions:
+            for next_state in transitions[(state, 'ε')]:
+                if next_state not in closure:
+                    closure.add(next_state)
+                    stack.append(next_state)
+    return closure
+
+def nfa_accepts(nfa_transitions, start_state, final_states, input_string):
+    current_states = epsilon_closure({start_state}, nfa_transitions)
+    
+    for symbol in input_string:
+        next_states = set()
+        for state in current_states:
+            if (state, symbol) in nfa_transitions:
+                next_states.update(nfa_transitions[(state, symbol)])
+        if not next_states:
+            return False
+        current_states = epsilon_closure(next_states, nfa_transitions)
+    
+    return any(state in final_states for state in current_states)
+
+# Пример НКА: распознаёт строки, заканчивающиеся на "ab" или содержащие "aa"
+nfa_transitions = {
+    ('q0', 'a'): {'q1', 'q3'},
+    ('q0', 'b'): {'q0'},
+    ('q1', 'a'): {'q2'},
+    ('q1', 'b'): {'q1'},
+    ('q2', 'a'): {'q2'},
+    ('q2', 'b'): {'q2'},
+    ('q3', 'b'): {'q4'},
+    ('q3', 'ε'): {'q1'},  # ε-переход
+    ('q4', 'a'): {'q4'},
+    ('q4', 'b'): {'q4'},
+}
+start_state = 'q0'
+final_states = {'q2', 'q4'}
+
+# Тестирование
+test_strings = ["ab", "aab", "baa", "bab", "aa", "b", ""]
+for s in test_strings:
+    result = nfa_accepts(nfa_transitions, start_state, final_states, s)
+    print(f"Строка '{s}' принимается: {result}")

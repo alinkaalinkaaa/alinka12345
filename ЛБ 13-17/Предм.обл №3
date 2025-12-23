@@ -1,0 +1,98 @@
+import heapq
+import os
+import tempfile
+
+def external_sort(input_file, output_file, chunk_size=100000):
+    """
+    External Merge Sort для сортировки больших файлов
+    
+    Args:
+        input_file: входной файл с данными (по одному числу на строку)
+        output_file: выходной отсортированный файл
+        chunk_size: размер чанка (количество чисел для сортировки в памяти)
+    """
+    
+    # Фаза 1: Разделение и сортировка чанков
+    temp_files = []
+    
+    with open(input_file, 'r') as f:
+        chunk = []
+        while True:
+            line = f.readline()
+            if not line:
+                break
+                
+            chunk.append(int(line.strip()))
+            
+            if len(chunk) >= chunk_size:
+                # Сортировка и запись чанка во временный файл
+                chunk.sort()
+                temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False)
+                temp_file.write('\n'.join(map(str, chunk)) + '\n')
+                temp_file.flush()
+                temp_files.append(temp_file.name)
+                chunk = []
+        
+        # Обработка последнего чанка
+        if chunk:
+            chunk.sort()
+            temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False)
+            temp_file.write('\n'.join(map(str, chunk)) + '\n')
+            temp_file.flush()
+            temp_files.append(temp_file.name)
+    
+    # Фаза 2: Слияние отсортированных файлов
+    heap = []
+    file_pointers = []
+    
+    # Открываем все временные файлы и инициализируем кучу
+    for i, temp_file in enumerate(temp_files):
+        fp = open(temp_file, 'r')
+        file_pointers.append(fp)
+        line = fp.readline()
+        if line:
+            heapq.heappush(heap, (int(line.strip()), i))
+    
+    # Слияние с использованием кучи
+    with open(output_file, 'w') as out_f:
+        while heap:
+            value, file_idx = heapq.heappop(heap)
+            out_f.write(f"{value}\n")
+            
+            # Читаем следующий элемент из того же файла
+            line = file_pointers[file_idx].readline()
+            if line:
+                heapq.heappush(heap, (int(line.strip()), file_idx))
+    
+    # Закрытие и удаление временных файлов
+    for fp in file_pointers:
+        fp.close()
+    
+    for temp_file in temp_files:
+        os.unlink(temp_file)
+
+# Пример использования
+def generate_test_file(filename, num_elements=1000000):
+    """Генерация тестового файла со случайными числами"""
+    import random
+    with open(filename, 'w') as f:
+        for _ in range(num_elements):
+            f.write(f"{random.randint(0, 1000000)}\n")
+
+if __name__ == "__main__":
+    # Создание тестового файла
+    input_file = "large_input.txt"
+    output_file = "sorted_output.txt"
+    
+    generate_test_file(input_file, 10000)  # 10K чисел для примера
+    
+    # Внешняя сортировка
+    external_sort(input_file, output_file, chunk_size=1000)
+    
+    print(f"Сортировка завершена. Результат в {output_file}")
+    
+    # Проверка первых 10 элементов
+    with open(output_file, 'r') as f:
+        print("Первые 10 отсортированных чисел:")
+        for i in range(10):
+            print(f.readline().strip())

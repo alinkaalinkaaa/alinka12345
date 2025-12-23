@@ -1,0 +1,128 @@
+import math
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+    
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+def cross_product(o, a, b):
+    """
+    Векторное произведение (OA x OB)
+    Положительное => левый поворот (против часовой стрелки)
+    Отрицательное => правый поворот (по часовой стрелке)
+    Ноль => точки коллинеарны
+    """
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+
+def polar_angle(p0, p):
+    """
+    Вычисление полярного угла точки p относительно p0
+    """
+    return math.atan2(p.y - p0.y, p.x - p0.x)
+
+def distance_sq(p1, p2):
+    """
+    Квадрат расстояния между двумя точками
+    """
+    return (p1.x - p2.x)**2 + (p1.y - p2.y)**2
+
+def graham_scan(points):
+    """
+    Алгоритм Грэхема для построения выпуклой оболочки
+    """
+    if len(points) < 3:
+        return points.copy()
+    
+    # 1. Находим точку с минимальной y-координатой
+    p0 = min(points, key=lambda p: (p.y, p.x))
+    
+    # 2. Сортируем точки по полярному углу
+    sorted_points = sorted(points, 
+                         key=lambda p: (polar_angle(p0, p), distance_sq(p0, p)))
+    
+    # Удаляем дубликаты (точки с одинаковым углом, оставляем дальнюю)
+    unique_points = []
+    for i in range(len(sorted_points)):
+        if i > 0 and polar_angle(p0, sorted_points[i]) == polar_angle(p0, sorted_points[i-1]):
+            continue
+        unique_points.append(sorted_points[i])
+    
+    # 3. Инициализируем стек
+    stack = []
+    stack.append(unique_points[0])
+    stack.append(unique_points[1])
+    
+    # 4. Основной цикл алгоритма Грэхема
+    for i in range(2, len(unique_points)):
+        while len(stack) >= 2:
+            top = stack[-1]
+            next_to_top = stack[-2]
+            
+            # Проверяем направление поворота
+            if cross_product(next_to_top, top, unique_points[i]) <= 0:
+                # Правый поворот или коллинеарность - удаляем вершину
+                stack.pop()
+            else:
+                break
+        
+        stack.append(unique_points[i])
+    
+    return stack
+
+def main():
+    # Тестовые данные
+    points = [
+        Point(0, 3), Point(2, 2), Point(1, 1), Point(2, 1),
+        Point(3, 0), Point(0, 0), Point(3, 3), Point(1, 2),
+        Point(2, 3), Point(0, 2)
+    ]
+    
+    print("Исходные точки:")
+    for p in points:
+        print(p)
+    
+    hull = graham_scan(points)
+    
+    print("\nВершины выпуклой оболочки (в порядке обхода):")
+    for p in hull:
+        print(p)
+    
+    # Визуализация (опционально)
+    try:
+        import matplotlib.pyplot as plt
+        
+        xs = [p.x for p in points]
+        ys = [p.y for p in points]
+        
+        hull_xs = [p.x for p in hull] + [hull[0].x]
+        hull_ys = [p.y for p in hull] + [hull[0].y]
+        
+        plt.figure(figsize=(8, 6))
+        plt.scatter(xs, ys, color='blue', label='Точки')
+        plt.plot(hull_xs, hull_ys, 'r-', linewidth=2, label='Выпуклая оболочка')
+        plt.scatter([p.x for p in hull], [p.y for p in hull], 
+                   color='red', s=100, zorder=5, label='Вершины оболочки')
+        
+        # Опорная точка
+        p0 = min(points, key=lambda p: (p.y, p.x))
+        plt.scatter(p0.x, p0.y, color='green', s=150, marker='*', 
+                   label='Опорная точка', zorder=10)
+        
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Алгоритм Грэхема: построение выпуклой оболочки')
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.axis('equal')
+        plt.show()
+    except ImportError:
+        print("\nДля визуализации установите matplotlib: pip install matplotlib")
+
+if __name__ == "__main__":
+    main()
